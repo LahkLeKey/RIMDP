@@ -56,7 +56,7 @@
   "compounds": [
     {
       "name": "RIMDP: Full Stack (Docker + API + Web)",
-      "preLaunchTask": "rimdp: docker compose up",
+      "preLaunchTask": "rimdp: prepare stack",
       "configurations": [
         "RIMDP: API (Fastify Debug)",
         "RIMDP: Web (Vite Dev Server)",

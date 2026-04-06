@@ -12,6 +12,8 @@
         "dev": "tsc -p tsconfig.json --watch",
         "build": "tsc -p tsconfig.json",
         "typecheck": "tsc -p tsconfig.json --noEmit",
+        "test": "vitest run -c vitest.config.ts",
+        "test:coverage": "vitest run -c vitest.config.ts --coverage",
         "lint": "echo 'No lint configured for shared'",
         "format": "echo 'No format task configured for shared'"
     },

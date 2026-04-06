@@ -8,6 +8,8 @@
         "build": "tsc -p tsconfig.json",
         "start": "node dist/server.js",
         "typecheck": "tsc -p tsconfig.json --noEmit",
+        "test": "vitest run -c vitest.config.ts",
+        "test:coverage": "vitest run -c vitest.config.ts --coverage",
         "lint": "echo 'No lint configured for api'",
         "format": "echo 'No format task configured for api'",
         "prisma:generate": "prisma generate",

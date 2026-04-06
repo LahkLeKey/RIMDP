@@ -24,6 +24,18 @@ export const buildApp = () => {
   app.register(authPlugin);
   app.register(errorHandlerPlugin);
 
+  app.addHook('onRequest', async (request, reply) => {
+    const routePath = request.url.split('?')[0];
+    const isPublicRoute =
+        routePath === '/health' || routePath === '/auth/login';
+
+    if (isPublicRoute) {
+      return;
+    }
+
+    await app.authenticate(request, reply);
+  });
+
   app.get('/health', async () => ({ok: true}));
   app.register(authRoutes, {prefix: '/auth'});
   app.register(equipmentRoutes, {prefix: '/equipment'});

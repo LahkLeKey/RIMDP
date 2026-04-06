@@ -3,6 +3,8 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {addRepairReading, createFailure, createRepair, getAnalytics, getEquipment, listEquipment, listFailures, login, updateRepair} from '../api';
 import {setAuthToken} from '../api/client';
 
+const AUTH_STATE_EVENT = 'rimdp-auth-changed';
+
 export const useEquipmentList = () =>
     useQuery({queryKey: ['equipment'], queryFn: listEquipment});
 
@@ -26,6 +28,7 @@ export const useLogin = () => useMutation({
   onSuccess: (data) => {
     setAuthToken(data.token);
     localStorage.setItem('rimdp_token', data.token);
+    window.dispatchEvent(new Event(AUTH_STATE_EVENT));
   }
 });
 

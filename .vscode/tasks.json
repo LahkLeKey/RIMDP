@@ -2,6 +2,15 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "rimdp: db init (first-run)",
+      "type": "shell",
+      "command": "node scripts/first-run-db-init.mjs",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "rimdp: docker compose up",
       "type": "shell",
       "command": "docker compose up -d",
@@ -27,6 +36,15 @@
         "cwd": "${workspaceFolder}"
       },
       "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "rimdp: prepare stack",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "rimdp: docker compose up",
+        "rimdp: db init (first-run)"
+      ],
       "problemMatcher": []
     }
   ]

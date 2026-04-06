@@ -17,5 +17,19 @@ services:
       timeout: 5s
       retries: 20
 
+  web:
+    profiles: ["web"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: rimdp-web
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://host.docker.internal:4000
+    ports:
+      - "5173:5173"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   rimdp_pg_data:

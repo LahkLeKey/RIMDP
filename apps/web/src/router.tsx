@@ -4,7 +4,7 @@ import { DashboardPage } from "./features/analytics/DashboardPage";
 import { EquipmentPage } from "./features/equipment/EquipmentPage";
 import { FailureReportPage } from "./features/failures/FailureReportPage";
 import { RepairWorkflowPage } from "./features/repairs/RepairWorkflowPage";
-import { AuthPanel } from "./components/AuthPanel";
+import { AppAuthGuard } from "./components/AppAuthGuard";
 
 const RootLayout = () => {
     return (
@@ -22,8 +22,9 @@ const RootLayout = () => {
                 </nav>
             </header>
             <main className="app-main">
-                <AuthPanel />
-                <Outlet />
+                <AppAuthGuard>
+                    <Outlet />
+                </AppAuthGuard>
             </main>
         </div>
     );
