@@ -1,0 +1,21 @@
+{
+    "name": "@rimdp/shared",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "tsc -p tsconfig.json --watch",
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "lint": "echo 'No lint configured for shared'",
+        "format": "echo 'No format task configured for shared'"
+    },
+    "dependencies": {
+        "zod": "^3.24.4"
+    }
+}

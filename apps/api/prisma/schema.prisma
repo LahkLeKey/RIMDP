@@ -1,0 +1,103 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum EquipmentStatus {
+    ACTIVE
+    DEPRECATED
+    PHASED_OUT
+}
+
+enum RepairStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETED
+    FAILED
+}
+
+enum Severity {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
+model Equipment {
+    id           String          @id @default(uuid())
+    name         String
+    model        String
+    serialNumber String          @unique
+    location     String
+    status       EquipmentStatus @default(ACTIVE)
+    components   Component[]
+    failures     Failure[]
+    createdAt    DateTime        @default(now())
+    updatedAt    DateTime        @updatedAt
+
+    @@index([status])
+}
+
+model Component {
+    id           String    @id @default(uuid())
+    equipmentId  String
+    equipment    Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+    name         String
+    pcbReference String
+    partNumber   String?
+    failures     Failure[]
+    createdAt    DateTime  @default(now())
+
+    @@index([equipmentId])
+}
+
+model Failure {
+    id          String     @id @default(uuid())
+    equipmentId String
+    equipment   Equipment  @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+    componentId String?
+    component   Component? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+    severity    Severity
+    symptoms    String
+    description String
+    occurredAt  DateTime   @default(now())
+    repairs     Repair[]
+
+    @@index([equipmentId])
+    @@index([componentId])
+    @@index([occurredAt])
+}
+
+model Repair {
+    id               String        @id @default(uuid())
+    failureId        String
+    failure          Failure       @relation(fields: [failureId], references: [id], onDelete: Cascade)
+    technician       String
+    notes            String
+    status           RepairStatus  @default(PENDING)
+    rootCause        String?
+    correctiveAction String?
+    startedAt        DateTime      @default(now())
+    completedAt      DateTime?
+    testReadings     TestReading[]
+
+    @@index([failureId])
+    @@index([status])
+}
+
+model TestReading {
+    id         String   @id @default(uuid())
+    repairId   String
+    repair     Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+    metric     String
+    value      Float
+    unit       String
+    passed     Boolean
+    recordedAt DateTime @default(now())
+
+    @@index([repairId])
+}

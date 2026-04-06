@@ -1,0 +1,68 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "RIMDP: API (Fastify Debug)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@rimdp/api",
+        "exec",
+        "tsx",
+        "watch",
+        "--inspect",
+        "src/server.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "autoAttachChildProcesses": true
+    },
+    {
+      "name": "RIMDP: Web (Vite Dev Server)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@rimdp/web",
+        "exec",
+        "vite",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "5173"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "RIMDP: Web (Chrome)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/apps/web/src"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "RIMDP: Full Stack (Docker + API + Web)",
+      "preLaunchTask": "rimdp: docker compose up",
+      "configurations": [
+        "RIMDP: API (Fastify Debug)",
+        "RIMDP: Web (Vite Dev Server)",
+        "RIMDP: Web (Chrome)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
