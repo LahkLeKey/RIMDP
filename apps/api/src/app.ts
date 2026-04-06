@@ -34,6 +34,17 @@ export const buildApp = () => {
         version: '1.0.0'
       },
       servers: [{url: 'http://localhost:4000'}],
+      tags: [
+        {
+          name: 'System',
+          description: 'Operational and documentation endpoints'
+        },
+        {name: 'Auth', description: 'Authentication endpoints'},
+        {name: 'Equipment', description: 'Equipment and component management'},
+        {name: 'Failures', description: 'Failure reporting and listing'},
+        {name: 'Repairs', description: 'Repair workflow management'},
+        {name: 'Analytics', description: 'Aggregated reliability analytics'}
+      ],
       components: {
         securitySchemes:
             {bearerAuth: {type: 'http', scheme: 'bearer', bearerFormat: 'JWT'}}
@@ -49,7 +60,16 @@ export const buildApp = () => {
     transformSpecificationClone: true
   });
 
-  app.get('/openapi.json', async () => app.swagger());
+  app.get(
+      '/openapi.json', {
+        schema: {
+          tags: ['System'],
+          summary: 'Get OpenAPI JSON',
+          description:
+              'Returns the generated OpenAPI specification for this API.'
+        }
+      },
+      async () => app.swagger());
 
   app.addHook('onRequest', async (request, reply) => {
     const routePath = (request.url ?? '').split('?')[0] ?? '';
@@ -64,7 +84,22 @@ export const buildApp = () => {
     await app.authenticate(request, reply);
   });
 
-  app.get('/health', async () => ({ok: true}));
+  app.get(
+      '/health', {
+        schema: {
+          tags: ['System'],
+          summary: 'Health check',
+          description: 'Returns service health status.',
+          response: {
+            200: {
+              type: 'object',
+              properties: {ok: {type: 'boolean'}},
+              required: ['ok']
+            }
+          }
+        }
+      },
+      async () => ({ok: true}));
   app.register(authRoutes, {prefix: '/auth'});
   app.register(equipmentRoutes, {prefix: '/equipment'});
   app.register(failureRoutes, {prefix: '/failures'});

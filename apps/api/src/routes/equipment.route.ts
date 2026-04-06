@@ -10,24 +10,54 @@ const equipmentCreateSchema = equipmentBaseSchema.extend(
     {components: z.array(componentBaseSchema).optional()});
 
 const equipmentUpdateSchema = equipmentBaseSchema.partial();
+const errorSchema = z.object({message: z.string()});
 
 export const equipmentRoutes: FastifyPluginAsync = async (app) => {
   const equipmentService = new EquipmentService(app.prisma);
 
-  app.get('/', async () => equipmentService.list());
+  app.get(
+      '/', {
+        schema: {
+          tags: ['Equipment'],
+          summary: 'List equipment',
+          description:
+              'Returns all equipment with related failures and repairs.',
+          security: [{bearerAuth: []}]
+        }
+      },
+      async () => equipmentService.list());
 
-  app.get('/:id', {schema: {params: paramsSchema}}, async (request, reply) => {
-    const {id} = request.params as z.infer<typeof paramsSchema>;
-    const equipment = await equipmentService.detail(id);
-    if (!equipment) {
-      return reply.status(404).send({message: 'Equipment not found'});
-    }
-    return equipment;
-  });
+  app.get(
+      '/:id', {
+        schema: {
+          tags: ['Equipment'],
+          summary: 'Get equipment by id',
+          description: 'Returns one equipment record with timeline details.',
+          params: paramsSchema,
+          security: [{bearerAuth: []}],
+          response: {404: errorSchema}
+        }
+      },
+      async (request, reply) => {
+        const {id} = request.params as z.infer<typeof paramsSchema>;
+        const equipment = await equipmentService.detail(id);
+        if (!equipment) {
+          return reply.status(404).send({message: 'Equipment not found'});
+        }
+        return equipment;
+      });
 
   app.post(
-      '/',
-      {schema: {body: equipmentCreateSchema}},
+      '/', {
+        schema: {
+          tags: ['Equipment'],
+          summary: 'Create equipment',
+          description:
+              'Creates a new equipment record and optional components.',
+          body: equipmentCreateSchema,
+          security: [{bearerAuth: []}]
+        }
+      },
       async (request, reply) => {
         const created = await equipmentService.create(
             request.body as z.infer<typeof equipmentCreateSchema>);
@@ -36,7 +66,14 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
 
   app.put(
       '/:id', {
-        schema: {params: paramsSchema, body: equipmentUpdateSchema}
+        schema: {
+          tags: ['Equipment'],
+          summary: 'Update equipment',
+          description: 'Updates an existing equipment record.',
+          params: paramsSchema,
+          body: equipmentUpdateSchema,
+          security: [{bearerAuth: []}]
+        }
       },
       async (request) => {
         const {id} = request.params as z.infer<typeof paramsSchema>;
@@ -45,7 +82,15 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
       });
 
   app.delete(
-      '/:id', {schema: {params: paramsSchema}},
+      '/:id', {
+        schema: {
+          tags: ['Equipment'],
+          summary: 'Delete equipment',
+          description: 'Deletes an equipment record by id.',
+          params: paramsSchema,
+          security: [{bearerAuth: []}]
+        }
+      },
       async (request, reply) => {
         const {id} = request.params as z.infer<typeof paramsSchema>;
         await equipmentService.remove(id);

@@ -10,13 +10,33 @@ const failureQuerySchema =
 export const failureRoutes: FastifyPluginAsync = async (app) => {
   const failureService = new FailureService(app.prisma);
 
-  app.get('/', {schema: {querystring: failureQuerySchema}}, async (request) => {
-    const query = request.query as z.infer<typeof failureQuerySchema>;
-    return failureService.list(query.equipmentId);
-  });
+  app.get(
+      '/', {
+        schema: {
+          tags: ['Failures'],
+          summary: 'List failures',
+          description: 'Returns failures, optionally filtered by equipment id.',
+          querystring: failureQuerySchema,
+          security: [{bearerAuth: []}]
+        }
+      },
+      async (request) => {
+        const query = request.query as z.infer<typeof failureQuerySchema>;
+        return failureService.list(query.equipmentId);
+      });
 
   app.post(
-      '/', {schema: {body: failureCreateSchema}}, async (request, reply) => {
+      '/', {
+        schema: {
+          tags: ['Failures'],
+          summary: 'Create failure',
+          description:
+              'Creates a new failure incident for equipment/component.',
+          body: failureCreateSchema,
+          security: [{bearerAuth: []}]
+        }
+      },
+      async (request, reply) => {
         const created = await failureService.create(
             request.body as z.infer<typeof failureCreateSchema>);
         return reply.status(201).send(created);
