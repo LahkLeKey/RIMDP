@@ -11,18 +11,14 @@ export const repairRoutes: FastifyPluginAsync = async (app) => {
   const repairService = new RepairService(app.prisma);
 
   app.post(
-      '/', {preHandler: [app.authenticate], schema: {body: repairCreateSchema}},
-      async (request, reply) => {
+      '/', {schema: {body: repairCreateSchema}}, async (request, reply) => {
         const created = await repairService.create(
             request.body as z.infer<typeof repairCreateSchema>);
         return reply.status(201).send(created);
       });
 
   app.patch(
-      '/:id', {
-        preHandler: [app.authenticate],
-        schema: {params: repairParamsSchema, body: repairUpdateSchema}
-      },
+      '/:id', {schema: {params: repairParamsSchema, body: repairUpdateSchema}},
       async (request) => {
         const {id} = request.params as z.infer<typeof repairParamsSchema>;
         return repairService.update(
@@ -30,10 +26,8 @@ export const repairRoutes: FastifyPluginAsync = async (app) => {
       });
 
   app.post(
-      '/:id/readings', {
-        preHandler: [app.authenticate],
-        schema: {params: repairParamsSchema, body: repairReadingBodySchema}
-      },
+      '/:id/readings',
+      {schema: {params: repairParamsSchema, body: repairReadingBodySchema}},
       async (request, reply) => {
         const {id} = request.params as z.infer<typeof repairParamsSchema>;
         const reading = await repairService.addTestReading({

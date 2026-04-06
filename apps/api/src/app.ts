@@ -1,6 +1,8 @@
 import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import Fastify from 'fastify';
-import {serializerCompiler, validatorCompiler, type ZodTypeProvider} from 'fastify-type-provider-zod';
+import {jsonSchemaTransform, serializerCompiler, validatorCompiler, type ZodTypeProvider} from 'fastify-type-provider-zod';
 
 import {authPlugin} from './plugins/auth.plugin.js';
 import {envPlugin} from './plugins/env.plugin.js';
@@ -24,10 +26,36 @@ export const buildApp = () => {
   app.register(authPlugin);
   app.register(errorHandlerPlugin);
 
+  app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'RIMDP API',
+        description: 'Repair Intelligence & Maintenance Decision Platform API',
+        version: '1.0.0'
+      },
+      servers: [{url: 'http://localhost:4000'}],
+      components: {
+        securitySchemes:
+            {bearerAuth: {type: 'http', scheme: 'bearer', bearerFormat: 'JWT'}}
+      }
+    },
+    transform: jsonSchemaTransform
+  });
+
+  app.register(swaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {docExpansion: 'list', deepLinking: false},
+    staticCSP: true,
+    transformSpecificationClone: true
+  });
+
+  app.get('/openapi.json', async () => app.swagger());
+
   app.addHook('onRequest', async (request, reply) => {
-    const routePath = request.url.split('?')[0];
-    const isPublicRoute =
-        routePath === '/health' || routePath === '/auth/login';
+    const routePath = (request.url ?? '').split('?')[0] ?? '';
+    const isPublicRoute = routePath === '/health' ||
+        routePath === '/auth/login' || routePath === '/openapi.json' ||
+        routePath.startsWith('/docs');
 
     if (isPublicRoute) {
       return;

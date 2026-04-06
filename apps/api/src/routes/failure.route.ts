@@ -16,9 +16,7 @@ export const failureRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post(
-      '/',
-      {preHandler: [app.authenticate], schema: {body: failureCreateSchema}},
-      async (request, reply) => {
+      '/', {schema: {body: failureCreateSchema}}, async (request, reply) => {
         const created = await failureService.create(
             request.body as z.infer<typeof failureCreateSchema>);
         return reply.status(201).send(created);

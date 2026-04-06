@@ -27,7 +27,7 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
 
   app.post(
       '/',
-      {preHandler: [app.authenticate], schema: {body: equipmentCreateSchema}},
+      {schema: {body: equipmentCreateSchema}},
       async (request, reply) => {
         const created = await equipmentService.create(
             request.body as z.infer<typeof equipmentCreateSchema>);
@@ -36,7 +36,6 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
 
   app.put(
       '/:id', {
-        preHandler: [app.authenticate],
         schema: {params: paramsSchema, body: equipmentUpdateSchema}
       },
       async (request) => {
@@ -46,7 +45,7 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
       });
 
   app.delete(
-      '/:id', {preHandler: [app.authenticate], schema: {params: paramsSchema}},
+      '/:id', {schema: {params: paramsSchema}},
       async (request, reply) => {
         const {id} = request.params as z.infer<typeof paramsSchema>;
         await equipmentService.remove(id);
