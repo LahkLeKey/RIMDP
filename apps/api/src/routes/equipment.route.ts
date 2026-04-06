@@ -11,6 +11,45 @@ const equipmentCreateSchema = equipmentBaseSchema.extend(
 
 const equipmentUpdateSchema = equipmentBaseSchema.partial();
 const errorSchema = z.object({message: z.string()});
+const componentResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  pcbReference: z.string(),
+  partNumber: z.string().nullable().optional()
+});
+const repairResponseSchema = z.object({
+  id: z.string().uuid(),
+  failureId: z.string().uuid(),
+  technician: z.string(),
+  notes: z.string(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED']),
+  rootCause: z.string().nullable().optional(),
+  correctiveAction: z.string().nullable().optional(),
+  startedAt: z.string(),
+  completedAt: z.string().nullable().optional()
+});
+const failureResponseSchema = z.object({
+  id: z.string().uuid(),
+  equipmentId: z.string().uuid(),
+  componentId: z.string().uuid().nullable().optional(),
+  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  symptoms: z.string(),
+  description: z.string(),
+  occurredAt: z.string(),
+  repairs: z.array(repairResponseSchema).optional()
+});
+const equipmentResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  model: z.string(),
+  serialNumber: z.string(),
+  location: z.string(),
+  status: z.enum(['ACTIVE', 'DEPRECATED', 'PHASED_OUT']),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  components: z.array(componentResponseSchema).optional(),
+  failures: z.array(failureResponseSchema).optional()
+});
 
 export const equipmentRoutes: FastifyPluginAsync = async (app) => {
   const equipmentService = new EquipmentService(app.prisma);
@@ -22,7 +61,8 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
           summary: 'List equipment',
           description:
               'Returns all equipment with related failures and repairs.',
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {200: z.array(equipmentResponseSchema)}
         }
       },
       async () => equipmentService.list());
@@ -35,7 +75,7 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
           description: 'Returns one equipment record with timeline details.',
           params: paramsSchema,
           security: [{bearerAuth: []}],
-          response: {404: errorSchema}
+          response: {200: equipmentResponseSchema, 404: errorSchema}
         }
       },
       async (request, reply) => {
@@ -55,7 +95,8 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
           description:
               'Creates a new equipment record and optional components.',
           body: equipmentCreateSchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {201: equipmentResponseSchema}
         }
       },
       async (request, reply) => {
@@ -72,7 +113,8 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
           description: 'Updates an existing equipment record.',
           params: paramsSchema,
           body: equipmentUpdateSchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {200: equipmentResponseSchema}
         }
       },
       async (request) => {
@@ -88,7 +130,8 @@ export const equipmentRoutes: FastifyPluginAsync = async (app) => {
           summary: 'Delete equipment',
           description: 'Deletes an equipment record by id.',
           params: paramsSchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {204: z.null().optional()}
         }
       },
       async (request, reply) => {

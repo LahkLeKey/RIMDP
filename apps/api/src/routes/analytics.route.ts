@@ -1,3 +1,4 @@
+import {analyticsResponseSchema} from '@rimdp/shared';
 import type {FastifyPluginAsync} from 'fastify';
 
 import {AnalyticsService} from '../services/analytics.service.js';
@@ -12,7 +13,8 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
           summary: 'Get analytics',
           description:
               'Returns dashboard metrics, trends, recurring issues, and recommendations.',
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {200: analyticsResponseSchema}
         }
       },
       async () => analyticsService.getAnalytics());

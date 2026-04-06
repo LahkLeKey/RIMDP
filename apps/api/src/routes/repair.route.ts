@@ -6,6 +6,37 @@ import {RepairService} from '../services/repair.service.js';
 
 const repairParamsSchema = z.object({id: z.string().uuid()});
 const repairReadingBodySchema = testReadingCreateSchema.omit({repairId: true});
+const testReadingResponseSchema = z.object({
+  id: z.string().uuid(),
+  repairId: z.string().uuid(),
+  metric: z.string(),
+  value: z.number(),
+  unit: z.string(),
+  passed: z.boolean(),
+  recordedAt: z.string()
+});
+const failureSummarySchema = z.object({
+  id: z.string().uuid(),
+  equipmentId: z.string().uuid(),
+  componentId: z.string().uuid().nullable().optional(),
+  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  symptoms: z.string(),
+  description: z.string(),
+  occurredAt: z.string()
+});
+const repairResponseSchema = z.object({
+  id: z.string().uuid(),
+  failureId: z.string().uuid(),
+  technician: z.string(),
+  notes: z.string(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED']),
+  rootCause: z.string().nullable().optional(),
+  correctiveAction: z.string().nullable().optional(),
+  startedAt: z.string(),
+  completedAt: z.string().nullable().optional(),
+  failure: failureSummarySchema.optional(),
+  testReadings: z.array(testReadingResponseSchema).optional()
+});
 
 export const repairRoutes: FastifyPluginAsync = async (app) => {
   const repairService = new RepairService(app.prisma);
@@ -17,7 +48,8 @@ export const repairRoutes: FastifyPluginAsync = async (app) => {
           summary: 'Create repair',
           description: 'Creates a repair workflow record for a failure.',
           body: repairCreateSchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {201: repairResponseSchema}
         }
       },
       async (request, reply) => {
@@ -34,7 +66,8 @@ export const repairRoutes: FastifyPluginAsync = async (app) => {
           description: 'Updates status and notes of an existing repair.',
           params: repairParamsSchema,
           body: repairUpdateSchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {200: repairResponseSchema}
         }
       },
       async (request) => {
@@ -52,7 +85,8 @@ export const repairRoutes: FastifyPluginAsync = async (app) => {
               'Adds a telemetry/test reading linked to a repair workflow step.',
           params: repairParamsSchema,
           body: repairReadingBodySchema,
-          security: [{bearerAuth: []}]
+          security: [{bearerAuth: []}],
+          response: {201: testReadingResponseSchema}
         }
       },
       async (request, reply) => {
