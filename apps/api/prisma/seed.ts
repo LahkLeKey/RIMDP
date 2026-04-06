@@ -1,8 +1,13 @@
+import {PrismaPg} from '@prisma/adapter-pg';
 import {EquipmentStatus, PrismaClient, RepairStatus, Severity} from '@prisma/client';
+import {pathToFileURL} from 'node:url';
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL ??
+    'postgresql://postgres:postgres@localhost:5432/rimdp';
+const adapter = new PrismaPg({connectionString});
+export const prisma = new PrismaClient({adapter});
 
-const seed = async () => {
+export const seed = async () => {
   await prisma.testReading.deleteMany();
   await prisma.repair.deleteMany();
   await prisma.failure.deleteMany();
@@ -146,13 +151,21 @@ const seed = async () => {
   });
 };
 
-seed()
-    .then(async () => {
-      await prisma.$disconnect();
-      console.log('RIMDP seed completed');
-    })
-    .catch(async (error) => {
-      console.error(error);
-      await prisma.$disconnect();
-      process.exit(1);
-    });
+const runCliSeed = async () => {
+  try {
+    await seed();
+    console.log('RIMDP seed completed');
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
+const executedFileUrl =
+    process.argv[1] ? pathToFileURL(process.argv[1]).href : null;
+
+if (executedFileUrl && import.meta.url === executedFileUrl) {
+  void runCliSeed();
+}

@@ -52,24 +52,33 @@ const ensureEnvFile = () => {
 mkdirSync(cacheDir, { recursive: true });
 ensureEnvFile();
 
+const runDbInit = () => {
+  run([
+    '--filter',
+    '@rimdp/api',
+    'exec',
+    'prisma',
+    'migrate',
+    'deploy'
+  ]);
+  run([
+    '--filter',
+    '@rimdp/api',
+    'exec',
+    'tsx',
+    'prisma/seed-if-empty.ts'
+  ]);
+};
+
 if (existsSync(markerPath)) {
-  console.log('DB first-run init already completed. Skipping migrate/seed.');
+  console.log(
+      'DB first-run init already completed. Applying migrations and conditional seed.');
+  runDbInit();
   process.exit(0);
 }
 
-console.log('Running first-run DB init (migrate, seed)...');
-run([
-  '--filter',
-  '@rimdp/api',
-  'exec',
-  'prisma',
-  'migrate',
-  'dev',
-  '--name',
-  'init',
-  '--skip-generate'
-]);
-run(['--filter', '@rimdp/api', 'prisma:seed']);
+console.log('Running first-run DB init (migrate, conditional seed)...');
+runDbInit();
 
 writeFileSync(
   markerPath,
