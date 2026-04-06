@@ -48,6 +48,7 @@ export const AuthPanel = () => {
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Password"
                     type="password"
+                    autoComplete="current-password"
                 />
                 <button style={{ gridColumn: "span 2" }} type="submit" disabled={loginMutation.isPending}>
                     {loginMutation.isPending ? "Signing in..." : "Sign in"}

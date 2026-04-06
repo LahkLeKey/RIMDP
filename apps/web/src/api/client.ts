@@ -1,6 +1,25 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
+const resolveBaseUrl = () => {
+  const configuredBaseUrl = import.meta.env.VITE_API_URL;
+  if (!configuredBaseUrl) {
+    return 'http://localhost:4000';
+  }
+
+  try {
+    const parsedUrl = new URL(configuredBaseUrl);
+    if (parsedUrl.hostname === 'host.docker.internal' &&
+        window.location.hostname === 'localhost') {
+      parsedUrl.hostname = 'localhost';
+      return parsedUrl.toString();
+    }
+    return configuredBaseUrl;
+  } catch {
+    return configuredBaseUrl;
+  }
+};
+
+const baseURL = resolveBaseUrl();
 
 export const api = axios.create({baseURL});
 

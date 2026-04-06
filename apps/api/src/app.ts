@@ -3,6 +3,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import Fastify from 'fastify';
 import {jsonSchemaTransform, serializerCompiler, validatorCompiler, type ZodTypeProvider} from 'fastify-type-provider-zod';
+import {z} from 'zod';
 
 import {authPlugin} from './plugins/auth.plugin.js';
 import {envPlugin} from './plugins/env.plugin.js';
@@ -90,13 +91,7 @@ export const buildApp = () => {
           tags: ['System'],
           summary: 'Health check',
           description: 'Returns service health status.',
-          response: {
-            200: {
-              type: 'object',
-              properties: {ok: {type: 'boolean'}},
-              required: ['ok']
-            }
-          }
+          response: {200: z.object({ok: z.boolean()})}
         }
       },
       async () => ({ok: true}));
