@@ -1,7 +1,7 @@
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {addRepairReading, createFailure, createRepair, getAnalytics, getEquipment, listEquipment, listFailures, login, updateRepair} from '../api';
-import {clearAuthSession, setAuthSession} from '../state/authState';
+import {clearAuthSession} from '../state/authState';
 
 export const useEquipmentList = () =>
     useQuery({queryKey: ['equipment'], queryFn: listEquipment});
@@ -21,17 +21,9 @@ export const useFailures = (equipmentId?: string) => useQuery({
 });
 
 export const useLogin = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({username, password}: {username: string; password: string}) =>
-        login(username, password),
-    onSuccess: (data) => {
-      setAuthSession(queryClient, data.token);
-      void queryClient.invalidateQueries({queryKey: ['equipment']});
-      void queryClient.invalidateQueries({queryKey: ['failures']});
-      void queryClient.invalidateQueries({queryKey: ['analytics']});
-    }
+        login(username, password)
   });
 };
 

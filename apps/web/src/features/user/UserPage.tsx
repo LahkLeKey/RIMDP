@@ -41,7 +41,7 @@ export const UserPage = () => {
     const { data: session } = useAuthSession();
 
     if (!session?.token) {
-        return <AuthPanel />;
+        return <AuthPanel redirectTo="/user" />;
     }
 
     const payload = parseTokenPayload(session.token);

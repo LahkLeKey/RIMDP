@@ -57,6 +57,7 @@ export const syncAuthSessionFromStorage = (queryClient: QueryClient) => {
 export const useAuthSession = () => useQuery({
   queryKey: authSessionQueryKey,
   queryFn: async () => readStoredAuthSession(),
+  enabled: false,
   initialData: readStoredAuthSession,
   staleTime: Infinity,
   gcTime: Infinity

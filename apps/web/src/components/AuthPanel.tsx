@@ -2,8 +2,8 @@ import { FormEvent, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import { useLogin, useLogout } from "../hooks/useApi";
-import { syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
+import { useLogin } from "../hooks/useApi";
+import { setAuthSession } from "../state/authState";
 
 const normalizeRedirectPath = (redirectTo?: string) => {
     if (!redirectTo || !redirectTo.startsWith("/")) {
@@ -17,8 +17,6 @@ export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const loginMutation = useLogin();
-    const logoutMutation = useLogout();
-    const { data: session } = useAuthSession();
     const [username, setUsername] = useState("admin");
     const [password, setPassword] = useState("admin123");
 
@@ -35,16 +33,16 @@ export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
         event.preventDefault();
         loginMutation.reset();
         try {
-            await loginMutation.mutateAsync({ username, password });
-            syncAuthSessionFromStorage(queryClient);
+            const result = await loginMutation.mutateAsync({ username, password });
+            setAuthSession(queryClient, result.token);
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["equipment"] }),
+                queryClient.invalidateQueries({ queryKey: ["failures"] }),
+                queryClient.invalidateQueries({ queryKey: ["analytics"] })
+            ]);
             navigate(normalizeRedirectPath(redirectTo), { replace: true });
         } catch {
         }
-    };
-
-    const handleLogout = () => {
-        logoutMutation.mutate();
-        loginMutation.reset();
     };
 
     return (
@@ -59,21 +57,10 @@ export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
                     type="password"
                     autoComplete="current-password"
                 />
-                <button style={{ gridColumn: "span 2" }} type="submit" disabled={loginMutation.isPending || logoutMutation.isPending}>
+                <button style={{ gridColumn: "span 2" }} type="submit" disabled={loginMutation.isPending}>
                     {loginMutation.isPending ? "Signing in..." : "Sign in"}
                 </button>
             </form>
-            {session?.token && (
-                <div style={{ marginTop: "0.5rem" }}>
-                    <p style={{ color: "#166534", margin: 0 }}>Signed in as {username}</p>
-                    <p style={{ margin: "0.25rem 0", fontSize: "0.85rem" }}>
-                        Token: {session.token.slice(0, 14)}...
-                    </p>
-                    <button type="button" onClick={handleLogout} disabled={logoutMutation.isPending}>
-                        {logoutMutation.isPending ? "Signing out..." : "Sign out"}
-                    </button>
-                </div>
-            )}
             {loginMutation.isError && (
                 <p style={{ color: "#b91c1c", marginTop: "0.5rem" }}>
                     {errorMessage}
