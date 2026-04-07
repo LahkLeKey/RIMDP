@@ -1,15 +1,15 @@
 import { FormEvent, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { setAuthToken } from "../api/client";
 import { useLogin } from "../hooks/useApi";
-
-const AUTH_STATE_EVENT = "rimdp-auth-changed";
+import { clearAuthSession, useAuthSession } from "../state/authState";
 
 export const AuthPanel = () => {
+    const queryClient = useQueryClient();
     const loginMutation = useLogin();
+    const { data: session } = useAuthSession();
     const [username, setUsername] = useState("admin");
     const [password, setPassword] = useState("admin123");
-    const [sessionToken, setSessionToken] = useState<string | null>(() => localStorage.getItem("rimdp_token"));
 
     const errorMessage = useMemo(() => {
         if (!loginMutation.error) {
@@ -22,20 +22,12 @@ export const AuthPanel = () => {
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
-        try {
-            const result = await loginMutation.mutateAsync({ username, password });
-            setSessionToken(result.token);
-        } catch {
-            setSessionToken(null);
-        }
+        await loginMutation.mutateAsync({ username, password });
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("rimdp_token");
-        setAuthToken(null);
-        setSessionToken(null);
+        clearAuthSession(queryClient);
         loginMutation.reset();
-        window.dispatchEvent(new Event(AUTH_STATE_EVENT));
     };
 
     return (
@@ -54,11 +46,11 @@ export const AuthPanel = () => {
                     {loginMutation.isPending ? "Signing in..." : "Sign in"}
                 </button>
             </form>
-            {sessionToken && (
+            {session?.token && (
                 <div style={{ marginTop: "0.5rem" }}>
                     <p style={{ color: "#166534", margin: 0 }}>Signed in as {username}</p>
                     <p style={{ margin: "0.25rem 0", fontSize: "0.85rem" }}>
-                        Token: {sessionToken.slice(0, 14)}...
+                        Token: {session.token.slice(0, 14)}...
                     </p>
                     <button type="button" onClick={handleLogout}>
                         Sign out

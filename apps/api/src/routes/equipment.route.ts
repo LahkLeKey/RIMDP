@@ -11,6 +11,7 @@ const equipmentCreateSchema = equipmentBaseSchema.extend(
 
 const equipmentUpdateSchema = equipmentBaseSchema.partial();
 const errorSchema = z.object({message: z.string()});
+const dateTimeSchema = z.union([z.string(), z.date()]);
 const componentResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -25,8 +26,8 @@ const repairResponseSchema = z.object({
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED']),
   rootCause: z.string().nullable().optional(),
   correctiveAction: z.string().nullable().optional(),
-  startedAt: z.string(),
-  completedAt: z.string().nullable().optional()
+  startedAt: dateTimeSchema,
+  completedAt: dateTimeSchema.nullable().optional()
 });
 const failureResponseSchema = z.object({
   id: z.string().uuid(),
@@ -35,7 +36,7 @@ const failureResponseSchema = z.object({
   severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
   symptoms: z.string(),
   description: z.string(),
-  occurredAt: z.string(),
+  occurredAt: dateTimeSchema,
   repairs: z.array(repairResponseSchema).optional()
 });
 const equipmentResponseSchema = z.object({
@@ -45,8 +46,8 @@ const equipmentResponseSchema = z.object({
   serialNumber: z.string(),
   location: z.string(),
   status: z.enum(['ACTIVE', 'DEPRECATED', 'PHASED_OUT']),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: dateTimeSchema,
+  updatedAt: dateTimeSchema,
   components: z.array(componentResponseSchema).optional(),
   failures: z.array(failureResponseSchema).optional()
 });

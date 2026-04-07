@@ -6,6 +6,7 @@ import {FailureService} from '../services/failure.service.js';
 
 const failureQuerySchema =
     z.object({equipmentId: z.string().uuid().optional()});
+const dateTimeSchema = z.union([z.string(), z.date()]);
 const repairResponseSchema = z.object({
   id: z.string().uuid(),
   failureId: z.string().uuid(),
@@ -14,8 +15,8 @@ const repairResponseSchema = z.object({
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED']),
   rootCause: z.string().nullable().optional(),
   correctiveAction: z.string().nullable().optional(),
-  startedAt: z.string(),
-  completedAt: z.string().nullable().optional(),
+  startedAt: dateTimeSchema,
+  completedAt: dateTimeSchema.nullable().optional(),
   testReadings: z.array(z.object({
                    id: z.string().uuid(),
                    repairId: z.string().uuid(),
@@ -23,7 +24,7 @@ const repairResponseSchema = z.object({
                    value: z.number(),
                    unit: z.string(),
                    passed: z.boolean(),
-                   recordedAt: z.string()
+                   recordedAt: dateTimeSchema
                  })).optional()
 });
 const failureResponseSchema = z.object({
@@ -33,7 +34,7 @@ const failureResponseSchema = z.object({
   severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
   symptoms: z.string(),
   description: z.string(),
-  occurredAt: z.string(),
+  occurredAt: dateTimeSchema,
   repairs: z.array(repairResponseSchema),
   equipment: z.object({
                 id: z.string().uuid(),
@@ -42,8 +43,8 @@ const failureResponseSchema = z.object({
                 serialNumber: z.string(),
                 location: z.string(),
                 status: z.enum(['ACTIVE', 'DEPRECATED', 'PHASED_OUT']),
-                createdAt: z.string(),
-                updatedAt: z.string()
+                createdAt: dateTimeSchema,
+                updatedAt: dateTimeSchema
               }).optional(),
   component: z.object({
                 id: z.string().uuid(),
@@ -51,7 +52,7 @@ const failureResponseSchema = z.object({
                 name: z.string(),
                 pcbReference: z.string(),
                 partNumber: z.string().nullable().optional(),
-                createdAt: z.string()
+                createdAt: dateTimeSchema
               })
                  .nullable()
                  .optional()

@@ -4,6 +4,13 @@ import type {RepairCreateInput, RepairUpdateInput, TestReadingCreateInput} from 
 export class RepairService {
   constructor(private readonly prisma: PrismaClient) {}
 
+  list() {
+    return this.prisma.repair.findMany({
+      include: {failure: true, testReadings: true},
+      orderBy: {startedAt: 'desc'}
+    });
+  }
+
   create(input: RepairCreateInput) {
     return this.prisma.repair.create({
       data: {

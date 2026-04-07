@@ -1,28 +1,23 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthPanel } from "./AuthPanel";
-
-const AUTH_STATE_EVENT = "rimdp-auth-changed";
-
-const readToken = () => localStorage.getItem("rimdp_token");
+import { syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
 
 export const AppAuthGuard = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(() => readToken());
+    const queryClient = useQueryClient();
+    const { data: session } = useAuthSession();
 
     useEffect(() => {
-        const syncAuthState = () => {
-            setToken(readToken());
-        };
+        const syncAuthState = () => syncAuthSessionFromStorage(queryClient);
 
         window.addEventListener("storage", syncAuthState);
-        window.addEventListener(AUTH_STATE_EVENT, syncAuthState);
 
         return () => {
             window.removeEventListener("storage", syncAuthState);
-            window.removeEventListener(AUTH_STATE_EVENT, syncAuthState);
         };
-    }, []);
+    }, [queryClient]);
 
-    if (!token) {
+    if (!session?.token) {
         return (
             <section className="card">
                 <h2>Authentication Required</h2>

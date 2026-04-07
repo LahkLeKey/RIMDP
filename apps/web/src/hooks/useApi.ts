@@ -1,9 +1,7 @@
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 
 import {addRepairReading, createFailure, createRepair, getAnalytics, getEquipment, listEquipment, listFailures, login, updateRepair} from '../api';
-import {setAuthToken} from '../api/client';
-
-const AUTH_STATE_EVENT = 'rimdp-auth-changed';
+import {setAuthSession} from '../state/authState';
 
 export const useEquipmentList = () =>
     useQuery({queryKey: ['equipment'], queryFn: listEquipment});
@@ -22,21 +20,16 @@ export const useFailures = (equipmentId?: string) => useQuery({
   queryFn: () => listFailures(equipmentId)
 });
 
-export const useLogin = () => useMutation({
-  mutationFn: ({username, password}: {username: string; password: string}) =>
-      login(username, password),
-  onSuccess: (data) => {
-    setAuthToken(data.token);
-    localStorage.setItem('rimdp_token', data.token);
-    window.dispatchEvent(new Event(AUTH_STATE_EVENT));
-  }
-});
+export const useLogin = () => {
+  const queryClient = useQueryClient();
 
-export const bootstrapToken = () => {
-  const token = localStorage.getItem('rimdp_token');
-  if (token) {
-    setAuthToken(token);
-  }
+  return useMutation({
+    mutationFn: ({username, password}: {username: string; password: string}) =>
+        login(username, password),
+    onSuccess: (data) => {
+      setAuthSession(queryClient, data.token);
+    }
+  });
 };
 
 export const useCreateFailure = () => {

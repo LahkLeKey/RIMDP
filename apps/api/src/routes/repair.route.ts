@@ -6,6 +6,7 @@ import {RepairService} from '../services/repair.service.js';
 
 const repairParamsSchema = z.object({id: z.string().uuid()});
 const repairReadingBodySchema = testReadingCreateSchema.omit({repairId: true});
+const dateTimeSchema = z.union([z.string(), z.date()]);
 const testReadingResponseSchema = z.object({
   id: z.string().uuid(),
   repairId: z.string().uuid(),
@@ -13,7 +14,7 @@ const testReadingResponseSchema = z.object({
   value: z.number(),
   unit: z.string(),
   passed: z.boolean(),
-  recordedAt: z.string()
+  recordedAt: dateTimeSchema
 });
 const failureSummarySchema = z.object({
   id: z.string().uuid(),
@@ -22,7 +23,7 @@ const failureSummarySchema = z.object({
   severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
   symptoms: z.string(),
   description: z.string(),
-  occurredAt: z.string()
+  occurredAt: dateTimeSchema
 });
 const repairResponseSchema = z.object({
   id: z.string().uuid(),
@@ -32,14 +33,27 @@ const repairResponseSchema = z.object({
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED']),
   rootCause: z.string().nullable().optional(),
   correctiveAction: z.string().nullable().optional(),
-  startedAt: z.string(),
-  completedAt: z.string().nullable().optional(),
+  startedAt: dateTimeSchema,
+  completedAt: dateTimeSchema.nullable().optional(),
   failure: failureSummarySchema.optional(),
   testReadings: z.array(testReadingResponseSchema).optional()
 });
 
 export const repairRoutes: FastifyPluginAsync = async (app) => {
   const repairService = new RepairService(app.prisma);
+
+  app.get(
+      '/', {
+        schema: {
+          tags: ['Repairs'],
+          summary: 'List repairs',
+          description:
+              'Returns repairs with related failure and test readings.',
+          security: [{bearerAuth: []}],
+          response: {200: z.array(repairResponseSchema)}
+        }
+      },
+      async () => repairService.list());
 
   app.post(
       '/', {
