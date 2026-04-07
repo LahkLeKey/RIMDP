@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { AuthPanel } from "./AuthPanel";
-import { syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
+import { AUTH_SESSION_UPDATED_EVENT, syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
 
 export const AppAuthGuard = ({ children }: { children: ReactNode }) => {
     const queryClient = useQueryClient();
@@ -15,9 +15,11 @@ export const AppAuthGuard = ({ children }: { children: ReactNode }) => {
         const syncAuthState = () => syncAuthSessionFromStorage(queryClient);
 
         window.addEventListener("storage", syncAuthState);
+        window.addEventListener(AUTH_SESSION_UPDATED_EVENT, syncAuthState);
 
         return () => {
             window.removeEventListener("storage", syncAuthState);
+            window.removeEventListener(AUTH_SESSION_UPDATED_EVENT, syncAuthState);
         };
     }, [queryClient]);
 

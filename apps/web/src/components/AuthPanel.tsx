@@ -1,8 +1,9 @@
 import { FormEvent, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { useLogin, useLogout } from "../hooks/useApi";
-import { useAuthSession } from "../state/authState";
+import { syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
 
 const normalizeRedirectPath = (redirectTo?: string) => {
     if (!redirectTo || !redirectTo.startsWith("/")) {
@@ -13,6 +14,7 @@ const normalizeRedirectPath = (redirectTo?: string) => {
 };
 
 export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const loginMutation = useLogin();
     const logoutMutation = useLogout();
@@ -34,6 +36,7 @@ export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
         loginMutation.reset();
         try {
             await loginMutation.mutateAsync({ username, password });
+            syncAuthSessionFromStorage(queryClient);
             navigate(normalizeRedirectPath(redirectTo), { replace: true });
         } catch {
         }

@@ -4,6 +4,7 @@ import {z} from 'zod';
 import {setAuthToken} from '../api/client';
 
 const AUTH_STORAGE_KEY = 'rimdp_token';
+export const AUTH_SESSION_UPDATED_EVENT = 'rimdp-auth-session-updated';
 
 const authSessionSchema = z.object({token: z.string().min(1)});
 
@@ -37,12 +38,14 @@ export const setAuthSession = (queryClient: QueryClient, token: string) => {
   localStorage.setItem(AUTH_STORAGE_KEY, parsedSession.token);
   setAuthToken(parsedSession.token);
   queryClient.setQueryData(authSessionQueryKey, parsedSession);
+  window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
 };
 
 export const clearAuthSession = (queryClient: QueryClient) => {
   localStorage.removeItem(AUTH_STORAGE_KEY);
   setAuthToken(null);
   queryClient.setQueryData(authSessionQueryKey, null);
+  window.dispatchEvent(new Event(AUTH_SESSION_UPDATED_EVENT));
 };
 
 export const syncAuthSessionFromStorage = (queryClient: QueryClient) => {
