@@ -1,12 +1,21 @@
 import { FormEvent, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { useLogin } from "../hooks/useApi";
-import { clearAuthSession, useAuthSession } from "../state/authState";
+import { useNavigate } from "react-router-dom";
+import { useLogin, useLogout } from "../hooks/useApi";
+import { useAuthSession } from "../state/authState";
 
-export const AuthPanel = () => {
-    const queryClient = useQueryClient();
+const normalizeRedirectPath = (redirectTo?: string) => {
+    if (!redirectTo || !redirectTo.startsWith("/")) {
+        return "/dashboard";
+    }
+
+    return redirectTo;
+};
+
+export const AuthPanel = ({ redirectTo }: { redirectTo?: string }) => {
+    const navigate = useNavigate();
     const loginMutation = useLogin();
+    const logoutMutation = useLogout();
     const { data: session } = useAuthSession();
     const [username, setUsername] = useState("admin");
     const [password, setPassword] = useState("admin123");
@@ -22,11 +31,16 @@ export const AuthPanel = () => {
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
-        await loginMutation.mutateAsync({ username, password });
+        loginMutation.reset();
+        try {
+            await loginMutation.mutateAsync({ username, password });
+            navigate(normalizeRedirectPath(redirectTo), { replace: true });
+        } catch {
+        }
     };
 
     const handleLogout = () => {
-        clearAuthSession(queryClient);
+        logoutMutation.mutate();
         loginMutation.reset();
     };
 
@@ -42,7 +56,7 @@ export const AuthPanel = () => {
                     type="password"
                     autoComplete="current-password"
                 />
-                <button style={{ gridColumn: "span 2" }} type="submit" disabled={loginMutation.isPending}>
+                <button style={{ gridColumn: "span 2" }} type="submit" disabled={loginMutation.isPending || logoutMutation.isPending}>
                     {loginMutation.isPending ? "Signing in..." : "Sign in"}
                 </button>
             </form>
@@ -52,8 +66,8 @@ export const AuthPanel = () => {
                     <p style={{ margin: "0.25rem 0", fontSize: "0.85rem" }}>
                         Token: {session.token.slice(0, 14)}...
                     </p>
-                    <button type="button" onClick={handleLogout}>
-                        Sign out
+                    <button type="button" onClick={handleLogout} disabled={logoutMutation.isPending}>
+                        {logoutMutation.isPending ? "Signing out..." : "Sign out"}
                     </button>
                 </div>
             )}

@@ -1,8 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { AuthPanel } from '../../components/AuthPanel';
-import { clearAuthSession, useAuthSession } from '../../state/authState';
+import { useLogout } from '../../hooks/useApi';
+import { useAuthSession } from '../../state/authState';
 
 const tokenPayloadSchema = z.object({
     sub: z.string().optional(),
@@ -37,7 +37,7 @@ const toDisplayDate = (epochSeconds?: number) => {
 };
 
 export const UserPage = () => {
-    const queryClient = useQueryClient();
+    const logoutMutation = useLogout();
     const { data: session } = useAuthSession();
 
     if (!session?.token) {
@@ -65,8 +65,8 @@ export const UserPage = () => {
             <p style={{ fontSize: '0.85rem', wordBreak: 'break-all' }}>
                 <strong>Token:</strong> {session.token}
             </p>
-            <button type="button" onClick={() => clearAuthSession(queryClient)}>
-                Logout
+            <button type="button" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
+                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
             </button>
         </section>
     );

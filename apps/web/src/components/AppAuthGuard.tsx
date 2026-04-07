@@ -1,11 +1,15 @@
 import { ReactNode, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { AuthPanel } from "./AuthPanel";
 import { syncAuthSessionFromStorage, useAuthSession } from "../state/authState";
 
 export const AppAuthGuard = ({ children }: { children: ReactNode }) => {
     const queryClient = useQueryClient();
+    const location = useLocation();
     const { data: session } = useAuthSession();
+
+    const intendedPath = `${location.pathname}${location.search}${location.hash}`;
 
     useEffect(() => {
         const syncAuthState = () => syncAuthSessionFromStorage(queryClient);
@@ -22,7 +26,7 @@ export const AppAuthGuard = ({ children }: { children: ReactNode }) => {
             <section className="card">
                 <h2>Authentication Required</h2>
                 <p>Sign in to access equipment, failures, repairs, and analytics.</p>
-                <AuthPanel />
+                <AuthPanel redirectTo={intendedPath} />
             </section>
         );
     }
